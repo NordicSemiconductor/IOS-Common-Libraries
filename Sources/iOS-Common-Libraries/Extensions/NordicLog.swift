@@ -21,6 +21,9 @@ public struct NordicLog: Sendable {
 
     static let iOSCommonLibrarySubsystem = "com.nordicsemi.iOS-Common-Libraries"
     
+    public static var history = LRUList<String>(capacity: 1000)
+    private let formatter = DateFormatter()
+
     // MARK: Private Properties
 
     private let category: String
@@ -54,6 +57,7 @@ public struct NordicLog: Sendable {
             mxLog = poiLog
         }
         self.delegate = delegate
+        self.formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
     }
     
     // MARK: cleanObjectName
@@ -96,18 +100,21 @@ public extension NordicLog {
 public extension NordicLog {
 
     @inline(__always) func info(_ line: String) {
+        NordicLog.history.add("\(formatter.string(from: Date())) \(line)")
         logger.info("\(line, privacy: .public)")
         mxEvent(name: #function, line: line)
         delegate?.submitted(line: line, from: category, subsystem: subsystem, as: .info)
     }
 
     @inline(__always) func debug(_ line: String) {
+        NordicLog.history.add("\(formatter.string(from: Date())) \(line)")
         logger.debug("\(line, privacy: .public)")
         mxEvent(name: #function, line: line)
         delegate?.submitted(line: line, from: category, subsystem: subsystem, as: .debug)
     }
 
     @inline(__always) func error(_ line: String) {
+        NordicLog.history.add("\(formatter.string(from: Date())) \(line)")
         logger.error("\(line, privacy: .public)")
         mxEvent(name: #function, line: line)
         delegate?.submitted(line: line, from: category, subsystem: subsystem, as: .error)
