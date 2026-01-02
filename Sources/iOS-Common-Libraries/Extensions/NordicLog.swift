@@ -10,6 +10,7 @@
 import Foundation
 import os
 import MetricKit
+import Combine
 #if os(iOS) || targetEnvironment(macCatalyst)
 import UIKit
 #endif
@@ -21,6 +22,8 @@ public struct NordicLog: Sendable {
 
     static let iOSCommonLibrarySubsystem = "com.nordicsemi.iOS-Common-Libraries"
     
+    public static var lastLog = CurrentValueSubject<LogRecord?, Never>(nil)
+
     // MARK: Private Properties
 
     private let category: String
@@ -96,18 +99,21 @@ public extension NordicLog {
 public extension NordicLog {
 
     @inline(__always) func info(_ line: String) {
+        NordicLog.lastLog.send(LogRecord(message: line, level: .info))
         logger.info("\(line, privacy: .public)")
         mxEvent(name: #function, line: line)
         delegate?.submitted(line: line, from: category, subsystem: subsystem, as: .info)
     }
 
     @inline(__always) func debug(_ line: String) {
+        NordicLog.lastLog.send(LogRecord(message: line, level: .debug))
         logger.debug("\(line, privacy: .public)")
         mxEvent(name: #function, line: line)
         delegate?.submitted(line: line, from: category, subsystem: subsystem, as: .debug)
     }
 
     @inline(__always) func error(_ line: String) {
+        NordicLog.lastLog.send(LogRecord(message: line, level: .error))
         logger.error("\(line, privacy: .public)")
         mxEvent(name: #function, line: line)
         delegate?.submitted(line: line, from: category, subsystem: subsystem, as: .error)
