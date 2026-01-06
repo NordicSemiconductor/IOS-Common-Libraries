@@ -10,6 +10,7 @@
 import Foundation
 import os
 import MetricKit
+import Combine
 #if os(iOS) || targetEnvironment(macCatalyst)
 import UIKit
 #endif
@@ -21,7 +22,7 @@ public struct NordicLog: Sendable {
 
     static let iOSCommonLibrarySubsystem = "com.nordicsemi.iOS-Common-Libraries"
     
-    public static var history = LRUList<String>(capacity: 1000)
+    public static var lastLog = CurrentValueSubject<String, Never>("")
     private let formatter = DateFormatter()
 
     // MARK: Private Properties
@@ -100,21 +101,21 @@ public extension NordicLog {
 public extension NordicLog {
 
     @inline(__always) func info(_ line: String) {
-        NordicLog.history.add("\(formatter.string(from: Date())) \(line)")
+        NordicLog.lastLog.send("\(formatter.string(from: Date())): info - \(line)")
         logger.info("\(line, privacy: .public)")
         mxEvent(name: #function, line: line)
         delegate?.submitted(line: line, from: category, subsystem: subsystem, as: .info)
     }
 
     @inline(__always) func debug(_ line: String) {
-        NordicLog.history.add("\(formatter.string(from: Date())) \(line)")
+        NordicLog.lastLog.send("\(formatter.string(from: Date())): debug - \(line)")
         logger.debug("\(line, privacy: .public)")
         mxEvent(name: #function, line: line)
         delegate?.submitted(line: line, from: category, subsystem: subsystem, as: .debug)
     }
 
     @inline(__always) func error(_ line: String) {
-        NordicLog.history.add("\(formatter.string(from: Date())) \(line)")
+        NordicLog.lastLog.send("\(formatter.string(from: Date())): error - \(line)")
         logger.error("\(line, privacy: .public)")
         mxEvent(name: #function, line: line)
         delegate?.submitted(line: line, from: category, subsystem: subsystem, as: .error)
