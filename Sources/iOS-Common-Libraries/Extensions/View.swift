@@ -36,6 +36,10 @@ public extension View {
         return frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .center)
     }
     
+    @inlinable func setListRowInsets(horizontal: CGFloat, vertical: CGFloat) -> some View {
+        return listRowInsets(.init(top: vertical, leading: horizontal, bottom: vertical, trailing: horizontal))
+    }
+    
     @inlinable func withoutListRowInsets() -> some View {
         return listRowInsets(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
     }
